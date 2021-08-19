@@ -1,6 +1,7 @@
 import { Story } from './story'
 import { Options } from './options'
 import { Narration } from './narration'
+import { Location } from './location'
 import { Page } from './page'
 const ink = require('../story.ink.json');
 
@@ -31,6 +32,7 @@ export class Game {
 
     this.story_page = document.getElementById("story_page")
     this.settings_page = document.getElementById("settings_page")
+    this.locations_page = document.getElementById("locations_page")
     this.page = this.story_page
     this.storyBtn.onclick = () => this.changePage("story_page")
     this.settingsBtn.onclick = () => this.changePage("settings_page")
@@ -43,11 +45,44 @@ export class Game {
       'items': items_page
     }
 
+    this.locations = { }
+    this.shownLocations = { }
+
+    this.addLocation('Morris Ave', 'A cobblestone alley', '', 'morris')
+    this.addLocation('Rainbow Bridge', 'An old train bridge with rainbow lights', '', 'rainbow_bridge')
+    this.addLocation('Avondale Brewery', 'A brewery bar venue near downtown', '', 'avondale_brewery')
+    this.addLocation('Vulcan', 'A giant statue on Red Mountain', '', 'vulcan')
+    this.addLocation('Alabama Theater', 'An old movie palace, built in 1927', '', 'alabama_theater')
+    this.currentLocation = 'morris'
+    this.revealedLocations = 0
+
     this.hideNavBar()
     this.createMoreBlock()
     this.textBlock = null
     this.story = new Story(ink)
     this.continueStory()
+    this.pingButtons = []
+  }
+
+  addLocation(name, desc, imgUrl, knot) {
+    this.locations[knot] = new Location(name, desc, imgUrl, knot)
+    this.locations[knot].createElements()
+  }
+
+  revealLocation(knot) {
+    console.log('revealing ' + knot)
+    if (this.locations[knot].revealed) {
+    } else {
+      this.revealedLocations++
+      this.locations_page.appendChild(this.locations[knot].div)
+      if (this.revealedLocations%2 === 1)
+        this.locations[knot].div.className = "narration left_fade_in"
+      else
+        this.locations[knot].div.className = "narration right_fade_in"
+      this.locations[knot].ping = true
+      this.pingLocations = true
+      this.locations[knot].revealed = true
+    }
   }
 
   update() {
@@ -57,9 +92,14 @@ export class Game {
       console.log(this.page.id)
       if (this.btnToPageLookup[btn.id].id === this.page.id)
         btn.className = "narration option nav highlighted"
-      else
+      else {
         btn.className = "narration option nav"
+      }
     }
+
+    if (this.pingLocations)
+      this.locationsBtn.className = "narration option nav blink_slow"
+
     this.updateMoreBlock()
   }
 
@@ -67,6 +107,10 @@ export class Game {
     this.page.style.display = "none"
     this.page = document.getElementById(id)
     this.page.style.display = "block"
+
+    if (id === 'locations_page') {
+      this.pingLocations = false
+    }
     this.update()
   }
 
@@ -135,6 +179,9 @@ export class Game {
     case ':block':
       this.currentClass = this.blockClsMap[cmd.params[0]]
     default: return true
+    case ':location':
+      this.revealLocation(cmd.params[0])
+      return true
     }
   }
 

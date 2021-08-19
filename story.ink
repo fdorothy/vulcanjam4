@@ -37,10 +37,12 @@ There are multiple endings.
 
 :bg car.png
 :block left
-You wander back to your car, the club's music was still ringing in your ears.
+You wander back to your car, the club's music still ringing in your ears.
 :br
+:location morris
 The hot summer rain evaporates in a mist above the cobblestones.
 :br
+:location rainbow_bridge
 The homeless sleep on their cardboard mats beneath the nearby railroad underpass.
 :br
 Their blankets illuminated by the rainbow lights.
