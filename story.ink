@@ -9,15 +9,18 @@ VAR time_cost = 10
 == title ==
 
 :bg skyline.png
-:block title
-Do(n't) Talk to Strangers
 :block subtitle
 by @redmountainman1 
 Made for Vulcan Jam 4, August 2021
 :block text
 
- + [Start Game] -> intro
- + [Help] -> help
+ + [Start Game] -> start_game
+
+== start_game ==
+
+:clear
+:start
+-> intro
 
 == help ==
 

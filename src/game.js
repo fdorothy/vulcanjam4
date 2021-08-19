@@ -1,6 +1,7 @@
 import { Story } from './story'
 import { Options } from './options'
 import { Narration } from './narration'
+import { Page } from './page'
 const ink = require('../story.ink.json');
 
 export class Game {
@@ -22,12 +23,63 @@ export class Game {
     }
     this.content = document.getElementById("content")
     this.footer = document.getElementById("footer")
+    this.storyBtn = document.getElementById("story")
+    this.locationsBtn = document.getElementById("locations")
+    this.itemsBtn = document.getElementById("items")
+    this.settingsBtn = document.getElementById("settings")
+    this.navBtns = [this.storyBtn, this.locationsBtn, this.itemsBtn, this.settingsBtn]
+
+    this.story_page = document.getElementById("story_page")
+    this.settings_page = document.getElementById("settings_page")
+    this.page = this.story_page
+    this.storyBtn.onclick = () => this.changePage("story_page")
+    this.settingsBtn.onclick = () => this.changePage("settings_page")
+    this.locationsBtn.onclick = () => this.changePage("locations_page")
+    this.itemsBtn.onclick = () => this.changePage("items_page")
+    this.btnToPageLookup = {
+      'story': story_page,
+      'settings': settings_page,
+      'locations': locations_page,
+      'items': items_page
+    }
+
+    this.hideNavBar()
     this.createMoreBlock()
     this.textBlock = null
     this.story = new Story(ink)
     this.continueStory()
   }
 
+  update() {
+    for (let i in this.navBtns) {
+      const btn = this.navBtns[i]
+      console.log(this.btnToPageLookup[btn.id])
+      console.log(this.page.id)
+      if (this.btnToPageLookup[btn.id].id === this.page.id)
+        btn.className = "narration option nav highlighted"
+      else
+        btn.className = "narration option nav"
+    }
+    this.updateMoreBlock()
+  }
+
+  changePage(id) {
+    this.page.style.display = "none"
+    this.page = document.getElementById(id)
+    this.page.style.display = "block"
+    this.update()
+  }
+
+  hideNavBar() {
+    for (let i in this.navBtns)
+      this.navBtns[i].style.display = "none"
+  }
+
+  showNavBar() {
+    for (let i in this.navBtns)
+      this.navBtns[i].style.display = "inline"
+  }
+  
   createMoreBlock() {
     let div = document.createElement("div")
     div.className = "center_fade_in"
@@ -39,7 +91,7 @@ export class Game {
   }
 
   updateMoreBlock() {
-    this.moreElem.style.visibility = this.story.ink.canContinue ? "visible" : "hidden"
+    this.moreElem.style.visibility = this.page.id == "story_page" && this.story.ink.canContinue ? "visible" : "hidden"
   }
 
   continueStory() {
@@ -49,7 +101,7 @@ export class Game {
       console.log(cmd)
       run = this.interpretCommand(cmd)
     }
-    this.updateMoreBlock()
+    this.update()
   }
 
   interpretCommand(cmd) {
@@ -61,11 +113,11 @@ export class Game {
     case 'text':
       const n = new Narration(this.currentClass)
       n.addText(cmd.value)
-      this.content.appendChild(n.textElem)
+      this.story_page.appendChild(n.textElem)
       return true
     case 'choices':
       const opt = new Options(cmd)
-      this.content.appendChild(opt.div)
+      this.story_page.appendChild(opt.div)
       return false
     }
   }
@@ -75,17 +127,24 @@ export class Game {
     case ':br':
       return false
     case ':clear':
-      const removeChilds = (parent) => {
-        while (parent.lastChild) {
-          parent.removeChild(parent.lastChild);
-        }
-      };
-      removeChilds(this.content)
+      this.removeAll()
+      return true
+    case ':start':
+      this.showNavBar()
       return true
     case ':block':
       this.currentClass = this.blockClsMap[cmd.params[0]]
     default: return true
     }
+  }
+
+  removeAll() {
+    const removeChilds = (parent) => {
+      while (parent.lastChild) {
+        parent.removeChild(parent.lastChild);
+      }
+    };
+    removeChilds(this.page)
   }
 
   setText(text) {
@@ -112,7 +171,10 @@ export class Game {
     keyMap[36] = 7;
 
     if (event.keyCode == 13) { // enter
-      this.continueStory()
+      if (this.page.id == 'story_page') {
+        if (this.story.ink.currentChoices.length == 0)
+          this.continueStory()
+      }
     }
 
     let code = e.keyCode;

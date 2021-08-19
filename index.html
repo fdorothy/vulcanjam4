@@ -9,21 +9,30 @@
         width: 840px;
         left: 50%;
         margin-right: -50%;
-        transform: translate(-420px, 0px)
+        margin-top: 20px;
+        padding-top: 20px;
+        transform: translate(-420px, 0px);
+        background-color: rgba(0,0,0,0.7);
     }
 
     .narration {
         color: white;
         font-family: monospace;
         letter-spacing: .17em;
-        font-size: 12pt;
+        font-size: 14pt;
         margin: 0 auto;
         overflow: hidden;
         //white-space: nowrap;
-        background-color: rgba(0,0,0,0.5)
+    }
+
+    .narration p {
     }
 
     .title {
+        font-size: 24pt;
+    }
+
+    .subtitle {
         font-size: 18pt;
     }
 
@@ -32,10 +41,9 @@
     }
 
     .narration p {
-        background-color: black;
-        margin: 0 5px;
+        margin: 0 0 1em 2em;
+        text-indent: -1em;
         display: inline-block;
-        margin: 0px 0px 5px 0px;
     }
 
     .option {
@@ -45,6 +53,14 @@
         margin: 5px;
         border: 0px;
         transition-duration: 0.4s;
+    }
+
+    .nav {
+        background-color: black;
+    }
+
+    .nav.highlighted {
+        background-color: rgba(128,0,0,1.0);
     }
 
     .option:hover {
@@ -151,14 +167,30 @@
     }
 
     body {
-        background-image: url('public/skyline_dither.png');
-        background-opacity: 0.5;
+        background-image: url('public/skyline2.png');
+        background-repeat: repeat;
+        background-position: top;
+        background-size: cover;
     }
   </style>
   <body style="margin: 0px; background-color: #111;" id="body">
     <script src="./dist/bundle.js"></script>
     <div id="container">
-      <div id="content"></div>
+      <div id="header" class="narration center_fade_in title">
+        <p>Do(n't) Talk to Strangers</p>
+        <div id="navbar" class="center_fade_in">
+          <button id="story" class="narration option nav highlighted">Story</button>
+          <button id="locations" class="narration option nav">Locations</button>
+          <button id="items" class="narration option nav">Items</button>
+          <button id="settings" class="narration option nav">Settings</button>
+        </div>
+      </div>
+      <div id="content">
+        <div id="story_page"></div>
+        <div id="locations_page" display="none"></div>
+        <div id="items_page" display="none"></div>
+        <div id="settings_page" display="none"></div>
+      </div>
       <div id="footer"></div>
     </div>
   </body>
