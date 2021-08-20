@@ -4,6 +4,7 @@ import { Narration } from './narration'
 import { Thumbnail } from './thumbnail'
 import { Location } from './location'
 import { Page } from './page'
+import { Queue } from './queue'
 const ink = require('../story.ink.json');
 
 export class Game {
@@ -11,6 +12,9 @@ export class Game {
   
   constructor() {
     Game.singleton = this
+    this.queue = new Queue()
+    this.backgroundImageUrl = null
+
     // handle keyboard events here
     const handleEvent = this.handleEvent
     window.addEventListener("keydown", (e) => handleEvent(e))
@@ -67,33 +71,33 @@ export class Game {
     this.pingButtons = []
   }
 
-  fadeIn() {
-    this.bgfader.className = 'fade_in'
+  fadeIn = () => {
+    return new Promise((resolve, reject) => {
+      this.bgfader.className = 'fade_in'
+      setTimeout(() => resolve(true), 1.5*1000)
+    })
   }
 
-  fadeOut() {
-    this.bgfader.className = 'fade_out'
-  }
-
-  fadeOutThen(fun) {
-    this.fadeOut()
-    setTimeout(fun, 1.5 * 1000.0)
+  fadeOut = () => {
+    return new Promise((resolve, reject) => {
+      this.bgfader.className = 'fade_out'
+      setTimeout(() => resolve(true), 1.5*1000)
+    })
   }
 
   changeBg(src) {
     const url = 'url("' + src + '")';
-    console.log(url)
-    if (this.body.style.backgroundImage !== url) {
+    if (url !== this.backgroundImageUrl) {
+      this.backgroundImageUrl = url
       if (!this.body.style.backgroundImage) {
-        console.log('fading in')
-        this.body.style.backgroundImage = url;
-        this.fadeIn()
+        this.body.style.backgroundImage = this.backgroundImageUrl;
+        this.queue.enqueue(this.fadeIn)
       } else {
-        console.log('fading out ' + this.body.style.backgroundImage)
-        this.fadeOutThen(() => {
-          this.body.style.backgroundImage = url;
-          this.fadeIn()
-        })
+        this.queue.enqueue(() =>
+          this.fadeOut()
+            .then(() => this.body.style.backgroundImage = this.backgroundImageUrl)
+            .then(() => this.fadeIn())
+        )
       }
     }
   }
@@ -149,7 +153,7 @@ export class Game {
     if (location != null && location.imgUrl != null) {
       this.changeBg(location.imgUrl);
     } else {
-      this.body.style.backgroundImage = null;
+      this.changeBg(null);
     }
 
     this.updateMoreBlock()
@@ -218,11 +222,13 @@ export class Game {
     case 'tag': return this.interpretTag(cmd)
     case 'empty': return true
     case 'text':
-      this.addText(this.story_page, cmd)
+      this.queue.enqueue_fun(() => this.addText(this.story_page, cmd))
       return true
     case 'choices':
-      const opt = new Options(cmd)
-      this.story_page.appendChild(opt.div)
+      this.queue.enqueue_fun(() => {
+        const opt = new Options(cmd)
+        this.story_page.appendChild(opt.div)
+      })
       return false
     }
   }
@@ -232,7 +238,7 @@ export class Game {
     case ':br':
       return false
     case ':clear':
-      this.removeAll(this.story_page)
+      this.queue.enqueue(() => new Promise((resolve) => resolve(this.removeAll(this.story_page))))
       return true
     case ':start':
       this.showNavBar()
@@ -244,7 +250,7 @@ export class Game {
       this.revealLocation(cmd.params[0])
       return true
     case ':thumbnail':
-      this.addThumbnail(this.story_page, cmd.params[0])
+      this.queue.enqueue_fun(() => this.addThumbnail(this.story_page, cmd.params[0]))
       return true
     }
   }
