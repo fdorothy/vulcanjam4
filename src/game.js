@@ -1,6 +1,7 @@
 import { Story } from './story'
 import { Options } from './options'
 import { Narration } from './narration'
+import { Thumbnail } from './thumbnail'
 import { Location } from './location'
 import { Page } from './page'
 const ink = require('../story.ink.json');
@@ -22,6 +23,8 @@ export class Game {
       title: 'center_fade_in title',
       subtitle: 'center_fade_in subtitle'
     }
+    this.bgfader = document.getElementById('bgfader')
+    this.body = document.getElementById('body')
     this.content = document.getElementById("content")
     this.footer = document.getElementById("footer")
     this.storyBtn = document.getElementById("story")
@@ -48,8 +51,8 @@ export class Game {
     this.locations = { }
     this.shownLocations = { }
 
-    this.addLocation('Morris Ave', 'A cobblestone alley', '', 'morris')
-    this.addLocation('Rainbow Bridge', 'An old train bridge with rainbow lights', '', 'rainbow_bridge')
+    this.addLocation('Morris Ave', 'A cobblestone alley', 'public/skyline2.png', 'morris')
+    this.addLocation('Rainbow Bridge', 'An old train bridge with rainbow lights', 'public/underpass.png', 'rainbow_bridge')
     this.addLocation('Avondale Brewery', 'A brewery bar venue near downtown', '', 'avondale_brewery')
     this.addLocation('Vulcan', 'A giant statue on Red Mountain', '', 'vulcan')
     this.addLocation('Alabama Theater', 'An old movie palace, built in 1927', '', 'alabama_theater')
@@ -62,6 +65,48 @@ export class Game {
     this.story = new Story(ink)
     this.continueStory()
     this.pingButtons = []
+  }
+
+  fadeIn() {
+    this.bgfader.className = 'fade_in'
+  }
+
+  fadeOut() {
+    this.bgfader.className = 'fade_out'
+  }
+
+  fadeOutThen(fun) {
+    this.fadeOut()
+    setTimeout(fun, 1.5 * 1000.0)
+  }
+
+  changeBg(src) {
+    const url = 'url("' + src + '")';
+    console.log(url)
+    if (this.body.style.backgroundImage !== url) {
+      if (!this.body.style.backgroundImage) {
+        console.log('fading in')
+        this.body.style.backgroundImage = url;
+        this.fadeIn()
+      } else {
+        console.log('fading out ' + this.body.style.backgroundImage)
+        this.fadeOutThen(() => {
+          this.body.style.backgroundImage = url;
+          this.fadeIn()
+        })
+      }
+    }
+  }
+
+  travelToLocation(knot, clear) {
+    this.currentLocation = knot
+    const location = this.locations[name]
+    this.story.ink.ChoosePathString(knot)
+    if (clear)
+      this.removeAll(this.story_page)
+    this.changePage('story_page')
+    this.continueStory()
+    this.update()
   }
 
   addLocation(name, desc, imgUrl, knot) {
@@ -99,6 +144,13 @@ export class Game {
 
     if (this.pingLocations)
       this.locationsBtn.className = "narration option nav blink_slow"
+
+    const location = this.locations[this.currentLocation]
+    if (location != null && location.imgUrl != null) {
+      this.changeBg(location.imgUrl);
+    } else {
+      this.body.style.backgroundImage = null;
+    }
 
     this.updateMoreBlock()
   }
@@ -148,6 +200,17 @@ export class Game {
     this.update()
   }
 
+  addText(page, cmd) {
+    const n = new Narration(this.currentClass)
+    n.addText(cmd.value)
+    page.appendChild(n.textElem)
+  }
+
+  addThumbnail(page, src) {
+    const t = new Thumbnail(src, "center_fade_in img")
+    page.appendChild(t.elem)
+  }
+
   interpretCommand(cmd) {
     switch (cmd.type) {
     default:
@@ -155,9 +218,7 @@ export class Game {
     case 'tag': return this.interpretTag(cmd)
     case 'empty': return true
     case 'text':
-      const n = new Narration(this.currentClass)
-      n.addText(cmd.value)
-      this.story_page.appendChild(n.textElem)
+      this.addText(this.story_page, cmd)
       return true
     case 'choices':
       const opt = new Options(cmd)
@@ -171,7 +232,7 @@ export class Game {
     case ':br':
       return false
     case ':clear':
-      this.removeAll()
+      this.removeAll(this.story_page)
       return true
     case ':start':
       this.showNavBar()
@@ -182,16 +243,19 @@ export class Game {
     case ':location':
       this.revealLocation(cmd.params[0])
       return true
+    case ':thumbnail':
+      this.addThumbnail(this.story_page, cmd.params[0])
+      return true
     }
   }
 
-  removeAll() {
+  removeAll(page) {
     const removeChilds = (parent) => {
       while (parent.lastChild) {
         parent.removeChild(parent.lastChild);
       }
     };
-    removeChilds(this.page)
+    removeChilds(page)
   }
 
   setText(text) {

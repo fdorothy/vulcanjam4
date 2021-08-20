@@ -38,6 +38,7 @@ There are multiple endings.
 :bg car.png
 :block left
 You wander back to your car, the club's music still ringing in your ears.
+:thumbnail public/underpass_thumbnail.png
 :br
 :location morris
 The hot summer rain evaporates in a mist above the cobblestones.
@@ -50,6 +51,16 @@ Their blankets illuminated by the rainbow lights.
 You are back at your car.
 
  * [Look for keys] -> missing_keys
+
+== morris ==
+
+This is morris ave.
+-> DONE
+
+== rainbow_bridge ==
+
+This is the rainbow bridge.
+-> DONE
 
 == missing_keys ==
 
