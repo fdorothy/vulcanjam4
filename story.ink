@@ -1,8 +1,4 @@
-VAR points = 0
-VAR size = 1
-VAR time = 10
-VAR size_cost = 10
-VAR time_cost = 10
+VAR money = 3.50
 
 -> title
 
@@ -22,48 +18,110 @@ Made for Vulcan Jam 4, August 2021
 :start
 -> intro
 
-== help ==
-
-This is an interactive fiction game.
-:br
-Click through the different options to play.
-:br
-There are multiple endings.
-:br
-:clear
--> title
-
+/*****************
+ * INTRO
+ */
 == intro ==
 
 :bg car.png
 :block left
-You wander back to your car, the club's music still ringing in your ears.
-:thumbnail public/underpass_thumbnail.png
+It's been a long day, and an even longer night.
 :br
-:location morris
-The hot summer rain evaporates in a mist above the cobblestones.
+You sit at Avondale Brewery, drinking the memories away.
+
+- (opts)
+	*	'Can I get a uniform from somewhere?'[] you ask the cheerful guard.
+		'Sure. In the locker.' He grins. 'Don't think it'll fit you, though.'
+	*	'Tell me about the security system.'
+		'It's ancient,' the guard assures you. 'Old as coal.'
+	*	'Are there dogs?'
+		'Hundreds,' the guard answers, with a toothy grin. 'Hungry devils, too.'
+	// We require the player to ask at least one question
+	*	{loop} [Enough talking] 
+		-> done
+- (loop) 
+	// loop a few times before the guard gets bored
+	{ -> opts | -> opts | }
+	He scratches his head.
+	'Well, can't stand around talking all day,' he declares. 
+- (done)
+	You thank the guard, and move away. 
+
+You had a few beers at Avondale Brewery.
+:br
+Now it's time to go.
 :br
 :location rainbow_bridge
-The homeless sleep on their cardboard mats beneath the nearby railroad underpass.
-:br
-Their blankets illuminated by the rainbow lights.
-:br
-You are back at your car.
+:location avondale
+:page locations
+-> DONE
 
- * [Look for keys] -> missing_keys
+/*****************
+ * MORRIS
+ */
 
 == morris ==
 
 This is morris ave.
+The hot summer rain evaporates in a mist above the cobblestones.
+:br
+
 -> DONE
+
+/*****************
+ * RAINBOW BRIDGE
+ */
 
 == rainbow_bridge ==
 
-This is the rainbow bridge.
+You are beneath the Rainbow Bridge.
+:br
+The homeless sleep on their cardboard mats.
+Their blankets illuminated by the rainbow lights.
+:br
+
+ + [Look around] ->
+   You look around.
+ + [Awaken Homeless Man] ->
+   You awaken a homeless man.
+
+ - -> DONE
+
+/*****************
+ * AVONDALE
+ */
+
+== avondale_brewery ==
+
+You are at Avondale Brewery.
+:br
+There are a few people still sitting at the bar.
+:br
+There is a handsome man sitting by himself at the bar.
+
+ + [Look Around] ->
+   You look around.
+ + [Wave to Bartender] ->
+   You wave to the bartender.
+ + [Flirt] ->
+   You flirt.
+ - -> avondale_brewery
+
+/*****************
+ * ALABAMA THEATER
+ */
+
+== alabama_theater ==
+
+You are at the Alabama Theater.
+
 -> DONE
 
-== missing_keys ==
+/*****************
+ * VULCAN
+ */
+== vulcan ==
 
-You check your pockets. The keys are not there.
+You are at Vulcan park.
 
 -> DONE

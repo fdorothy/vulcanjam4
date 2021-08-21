@@ -12,6 +12,7 @@ export class Game {
   
   constructor() {
     Game.singleton = this
+    this.br = false
     this.queue = new Queue()
     this.backgroundImageUrl = null
 
@@ -191,10 +192,11 @@ export class Game {
   }
 
   updateMoreBlock() {
-    this.moreElem.style.visibility = this.page.id == "story_page" && this.story.ink.canContinue ? "visible" : "hidden"
+    this.moreElem.style.visibility = this.page.id == "story_page" && this.br ? "visible" : "hidden"
   }
 
   continueStory() {
+    this.br = false
     let run = true
     while (run) {
       let cmd = this.story.next()
@@ -236,12 +238,16 @@ export class Game {
   interpretTag(cmd) {
     switch (cmd.name) {
     case ':br':
+      this.queue.enqueue_fun(() => {
+        this.br = true
+        this.update()
+      })
       return false
     case ':clear':
       this.queue.enqueue(() => new Promise((resolve) => resolve(this.removeAll(this.story_page))))
       return true
     case ':start':
-      this.showNavBar()
+      this.queue.enqueue_fun(() => this.showNavBar())
       return true
     case ':block':
       this.currentClass = this.blockClsMap[cmd.params[0]]
@@ -251,6 +257,14 @@ export class Game {
       return true
     case ':thumbnail':
       this.queue.enqueue_fun(() => this.addThumbnail(this.story_page, cmd.params[0]))
+      return true
+    case ':travel':
+      this.queue.enqueue_fun(() => this.travelToLocation(cmd.params[0], true))
+      return true
+    case ':page':
+      this.queue.enqueue_fun(() => {
+        this.changePage(this.btnToPageLookup[cmd.params[0]].id)
+      })
       return true
     }
   }
@@ -289,8 +303,10 @@ export class Game {
 
     if (event.keyCode == 13) { // enter
       if (this.page.id == 'story_page') {
-        if (this.story.ink.currentChoices.length == 0)
+        if (this.br) {
+          this.br = false
           this.continueStory()
+        }
       }
     }
 
