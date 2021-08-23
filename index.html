@@ -87,7 +87,7 @@
 
     @keyframes left_fade_in_keyframes {
         from {
-            transform: translate(150px, 0px);
+            transform: translate(10px, 0px);
             opacity: 0;
         }
         to {
@@ -103,7 +103,7 @@
 
     @keyframes right_fade_in_keyframes {
         from {
-            transform: translate(-150px, 0px);
+            transform: translate(-10px, 0px);
             opacity: 0;
         }
         to {
@@ -162,7 +162,7 @@
     }
 
     .blink_slow {
-        animation: blinking 0.5s infinite;
+        animation: blinking 1.0s infinite;
     }
 
     .blink_fast {
@@ -214,12 +214,6 @@
     <div id="container">
       <div id="header" class="narration center_fade_in title">
         <p>Do(n't) Talk to Strangers</p>
-        <div id="navbar" class="center_fade_in">
-          <button id="story" class="narration option nav highlighted">Story</button>
-          <button id="locations" class="narration option nav">Locations</button>
-          <button id="items" class="narration option nav">Items</button>
-          <button id="settings" class="narration option nav">Settings</button>
-        </div>
       </div>
       <div id="content">
         <div id="story_page"></div>

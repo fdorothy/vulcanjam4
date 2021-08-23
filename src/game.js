@@ -32,44 +32,11 @@ export class Game {
     this.body = document.getElementById('body')
     this.content = document.getElementById("content")
     this.footer = document.getElementById("footer")
-    this.storyBtn = document.getElementById("story")
-    this.locationsBtn = document.getElementById("locations")
-    this.itemsBtn = document.getElementById("items")
-    this.settingsBtn = document.getElementById("settings")
-    this.navBtns = [this.storyBtn, this.locationsBtn, this.itemsBtn, this.settingsBtn]
+    this.page = document.getElementById("story_page")
 
-    this.story_page = document.getElementById("story_page")
-    this.settings_page = document.getElementById("settings_page")
-    this.locations_page = document.getElementById("locations_page")
-    this.page = this.story_page
-    this.storyBtn.onclick = () => this.changePage("story_page")
-    this.settingsBtn.onclick = () => this.changePage("settings_page")
-    this.locationsBtn.onclick = () => this.changePage("locations_page")
-    this.itemsBtn.onclick = () => this.changePage("items_page")
-    this.btnToPageLookup = {
-      'story': story_page,
-      'settings': settings_page,
-      'locations': locations_page,
-      'items': items_page
-    }
-
-    this.locations = { }
-    this.shownLocations = { }
-
-    this.addLocation('Morris Ave', 'A cobblestone alley', 'public/skyline2.png', 'morris')
-    this.addLocation('Rainbow Bridge', 'An old train bridge with rainbow lights', 'public/underpass.png', 'rainbow_bridge')
-    this.addLocation('Avondale Brewery', 'A brewery bar venue near downtown', '', 'avondale_brewery')
-    this.addLocation('Vulcan', 'A giant statue on Red Mountain', '', 'vulcan')
-    this.addLocation('Alabama Theater', 'An old movie palace, built in 1927', '', 'alabama_theater')
-    this.currentLocation = 'morris'
-    this.revealedLocations = 0
-
-    this.hideNavBar()
     this.createMoreBlock()
-    this.textBlock = null
     this.story = new Story(ink)
     this.continueStory()
-    this.pingButtons = []
   }
 
   fadeIn = () => {
@@ -103,96 +70,22 @@ export class Game {
     }
   }
 
-  travelToLocation(knot, clear) {
-    this.currentLocation = knot
-    const location = this.locations[name]
-    this.story.ink.ChoosePathString(knot)
-    if (clear)
-      this.removeAll(this.story_page)
-    this.changePage('story_page')
-    this.continueStory()
-    this.update()
-  }
-
-  addLocation(name, desc, imgUrl, knot) {
-    this.locations[knot] = new Location(name, desc, imgUrl, knot)
-    this.locations[knot].createElements()
-  }
-
-  revealLocation(knot) {
-    console.log('revealing ' + knot)
-    if (this.locations[knot].revealed) {
-    } else {
-      this.revealedLocations++
-      this.locations_page.appendChild(this.locations[knot].div)
-      if (this.revealedLocations%2 === 1)
-        this.locations[knot].div.className = "narration left_fade_in"
-      else
-        this.locations[knot].div.className = "narration right_fade_in"
-      this.locations[knot].ping = true
-      this.pingLocations = true
-      this.locations[knot].revealed = true
-    }
-  }
-
   update() {
-    for (let i in this.navBtns) {
-      const btn = this.navBtns[i]
-      console.log(this.btnToPageLookup[btn.id])
-      console.log(this.page.id)
-      if (this.btnToPageLookup[btn.id].id === this.page.id)
-        btn.className = "narration option nav highlighted"
-      else {
-        btn.className = "narration option nav"
-      }
-    }
-
-    if (this.pingLocations)
-      this.locationsBtn.className = "narration option nav blink_slow"
-
-    const location = this.locations[this.currentLocation]
-    if (location != null && location.imgUrl != null) {
-      this.changeBg(location.imgUrl);
-    } else {
-      this.changeBg(null);
-    }
-
     this.updateMoreBlock()
   }
 
-  changePage(id) {
-    this.page.style.display = "none"
-    this.page = document.getElementById(id)
-    this.page.style.display = "block"
-
-    if (id === 'locations_page') {
-      this.pingLocations = false
-    }
-    this.update()
-  }
-
-  hideNavBar() {
-    for (let i in this.navBtns)
-      this.navBtns[i].style.display = "none"
-  }
-
-  showNavBar() {
-    for (let i in this.navBtns)
-      this.navBtns[i].style.display = "inline"
-  }
-  
   createMoreBlock() {
     let div = document.createElement("div")
     div.className = "center_fade_in"
-    div.innerHTML = "press enter to continue"
-    div.className = "narration more"
+    div.innerHTML = "..."
+    div.className = "center_fade_in narration more"
     div.onclick = () => this.continueStory()
     footer.appendChild(div)
     this.moreElem = div
   }
 
   updateMoreBlock() {
-    this.moreElem.style.visibility = this.page.id == "story_page" && this.br ? "visible" : "hidden"
+    this.moreElem.style.visibility = this.br ? "visible" : "hidden"
   }
 
   continueStory() {
@@ -224,12 +117,12 @@ export class Game {
     case 'tag': return this.interpretTag(cmd)
     case 'empty': return true
     case 'text':
-      this.queue.enqueue_fun(() => this.addText(this.story_page, cmd))
+      this.queue.enqueue_fun(() => this.addText(this.page, cmd))
       return true
     case 'choices':
       this.queue.enqueue_fun(() => {
         const opt = new Options(cmd)
-        this.story_page.appendChild(opt.div)
+        this.page.appendChild(opt.div)
       })
       return false
     }
@@ -244,19 +137,19 @@ export class Game {
       })
       return false
     case ':clear':
-      this.queue.enqueue(() => new Promise((resolve) => resolve(this.removeAll(this.story_page))))
+      this.queue.enqueue(() => new Promise((resolve) => resolve(this.removeAll(this.page))))
       return true
     case ':start':
-      this.queue.enqueue_fun(() => this.showNavBar())
+      //this.queue.enqueue_fun(() => this.showNavBar())
       return true
     case ':block':
       this.currentClass = this.blockClsMap[cmd.params[0]]
     default: return true
-    case ':location':
-      this.revealLocation(cmd.params[0])
-      return true
     case ':thumbnail':
-      this.queue.enqueue_fun(() => this.addThumbnail(this.story_page, cmd.params[0]))
+      this.queue.enqueue_fun(() => this.addThumbnail(this.page, cmd.params[0]))
+      return true
+    case ':bg':
+      this.changeBg(cmd.params[0])
       return true
     case ':travel':
       this.queue.enqueue_fun(() => this.travelToLocation(cmd.params[0], true))
@@ -265,6 +158,9 @@ export class Game {
       this.queue.enqueue_fun(() => {
         this.changePage(this.btnToPageLookup[cmd.params[0]].id)
       })
+      return true
+    case ':gameover':
+      
       return true
     }
   }
@@ -302,11 +198,9 @@ export class Game {
     keyMap[36] = 7;
 
     if (event.keyCode == 13) { // enter
-      if (this.page.id == 'story_page') {
-        if (this.br) {
-          this.br = false
-          this.continueStory()
-        }
+      if (this.br) {
+        this.br = false
+        this.continueStory()
       }
     }
 
